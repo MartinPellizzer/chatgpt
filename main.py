@@ -1,7 +1,8 @@
 import openai
 import os
 
-openai.api_key = "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"
+with open('api.txt') as f:
+    openai.api_key = f.read()
 
 model_engine = "text-davinci-003"
 
@@ -18,25 +19,27 @@ def ask(prompt):
     return completion.choices[0].text
 
 folder = 'warriorthesis'
-# topic = 'ozone sanitization in the food industry'
+folder = 'ozonogroup'
 topic = 'bullying'
-title = 'How to Recognize the Signs of Bullying'
+topic = 'ozone sanitization in the food industry'
 
-def generate_ideas(topic):
-    response = ask(f"give me some blog post ideas for {topic}")
+def generate_ideas():
+    response = ask(f"give me 10 blog post ideas for {topic}")
     with open(f'./{folder}/ideas.txt', 'w') as f: f.write(response)
+    print(response)
 
-def generate_title(title):
+def generate_title():
     response = ask(f"Write a title for a blog post about {topic}")
     with open(f'./{folder}/title.txt', 'w') as f: f.write(response)
+    print(response)
 
-def generate_outline():
+def generate_outline(title):
     response = ask(f'write me a blog outline for the following title [{title}]. Only use numbers for sections and dashes for subsections. Make the outline unreasonably long.')
     with open(f'./{folder}/outline.txt', 'w') as f: f.write(response)
     print(response)
 
 def generate_sections():
-    with open(f'./{folder}/outline-refined.txt') as f: lines = f.readlines()
+    with open(f'./{folder}/outline.txt') as f: lines = f.readlines()
 
     subtitles = []
     for line in lines:
@@ -45,11 +48,22 @@ def generate_sections():
 
     i = 0
     for subtitle in subtitles:
-        response = ask(f"write me a blog section for: {subtitles[i]} {topic}")
+        response = ask(f"write me a blog section for {subtitles[i]} (context: {topic})")
         filename = subtitle.lower().replace(' ', '_')
         with open(f'./{folder}/sections/{i}_{filename}.txt', 'w') as f: f.write(response)
         i += 1
         print(response)
+
+def generate_sections_ita():
+    for section in os.listdir(f'./{folder}/sections/'):
+        with open(f'./{folder}/sections/{section}') as f: 
+            content = f.read()
+
+        response = ask(f"translate in italian: {content}")
+        with open(f'./{folder}/sections_ita/{section}', 'w') as f: 
+            f.write(response)
+        print(response)
+
 
 
 def generate_post():
@@ -61,9 +75,20 @@ def generate_post():
             content = f.read()
 
         with open(f'./{folder}/post.txt', 'a') as f:
+            f.write('\n')
+            f.write('\n')
+            section = section[5:-4].replace('_', ' ').title()
+            f.write(section)
             f.write(content)
 
 
-# generate_outline()
-generate_sections()
-generate_post()
+# generate_ideas()
+
+# with open(f'./{folder}/ideas.txt') as f: 
+#     lines = f.readlines()
+# title = lines[10]
+# generate_outline(title)
+
+# generate_sections()
+generate_sections_ita()
+# generate_post()
